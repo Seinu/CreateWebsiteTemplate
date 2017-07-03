@@ -1,0 +1,146 @@
+<!-- 
+*****************************************************************************
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+*****************************************************************************
+	File Name:	CreateSite.hta
+	Authors:	Seinu
+	Purpose:	Create Website Template 
+	History:
+		07/03/2017 - v1.0	Basic Website Template creator
+			Features:
+				create html Boilerplates for each page of site with custom filetype
+				option to include basic Bootstrap Navbar
+
+*****************************************************************************
+-->
+<HEAD>
+<TITLE>Create Website Boilerplate</TITLE>
+<hta:application
+	applicationname="Create Website Boilerplate"
+	scroll="no"
+	singleinstance'"yes"
+	>
+</HEAD>
+ 
+<SCRIPT language="vbscript">
+'********************************************************************************
+Sub window_onload()
+	CenterWindow 290,320
+	Self.document.bgColor = "White" 
+End Sub
+'********************************************************************************
+Sub CenterWindow(x,y)
+	Dim iLeft,itop
+	window.resizeTo x,y
+	iLeft = window.screen.availWidth/2 - x/2
+	itop = window.screen.availHeight/2 - y/2
+	window.moveTo ileft,itop
+End Sub
+'********************************************************************************
+Sub createHTMLPage()
+	Dim outPath, title, description, author 
+	strFileType = InputBox("Input File Type ie .php .html", "File Type")
+	strFileList = InputBox("Input Files to create separated by a ,", "files to create")
+	arrFileList = Split(strFileList, ",")
+	
+	outPath = TextBox1.Value
+	title = TextBox2.Value
+	description = TextBox3.Value
+	author = TextBox4.Value
+	outPath = outPath & "\"
+	Set fso = CreateObject("Scripting.FileSystemObject") 'create file system object
+	If Not fso.FolderExists(outPath) Then
+    	fso.CreateFolder(outPath)
+    	If Not fso.FolderExists(outPath & "\css") Then
+    		fso.CreateFolder(outPath & "\css")
+		End If
+	End If
+	Set fCSS = fso.OpenTextFile(outPath & "\css\style.css",2,True)
+	fCSS.Close
+	
+	For i = 0 to UBound(arrFileList)
+		Set fHTML = fso.OpenTextFile(outPath & arrFileList(i) & strFileType ,2,True)
+	
+		'window contents
+		fHTML.WriteLine "<!doctype html>"
+		fHTML.WriteLine " "
+		fHTML.WriteLine "<html lang=""en"">"
+		fHTML.WriteLine "<head>"
+		fHTML.WriteLine "	<meta charset=""utf-8"">"
+		fHTML.WriteLine " "
+		fHTML.WriteLine "	<title>" & title & " | " & arrFileList(i) & "</title>"
+		fHTML.WriteLine " "
+		fHTML.WriteLine "	<meta name=""description"" content=""" & description & """>"
+		fHTML.WriteLine "	<meta name=""author"" content=""" & author & """>"
+		fHTML.WriteLine " "
+		fHTML.WriteLine "	<link rel=""stylesheet"" href=""css/style.css"">"
+		If navbarInclude.Checked Then
+			fHTML.WriteLine " "
+			fHTML.WriteLine "<!-- Latest compiled and minified CSS -->"
+			fHTML.WriteLine "<link rel=""stylesheet"" href=""https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"" integrity=""sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"" crossorigin=""anonymous"">"
+		End If
+		fHTML.WriteLine " "
+		fHTML.WriteLine "</head>"
+		fHTML.WriteLine "<body>"
+		If navbarInclude.Checked Then
+			fHTML.WriteLine " "
+			fHTML.WriteLine "	<nav class=""navbar navbar-default"">"
+			fHTML.WriteLine "		<div class=""container-fluid"">"
+			fHTML.WriteLine "			<!-- Brand and toggle get grouped for better mobile display -->"
+			fHTML.WriteLine "			<div class=""navbar-header"">"
+			fHTML.WriteLine "				<button type=""button"" class=""navbar-toggle collapsed"" data-toggle=""collapse"" data-target=""#bs-example-navbar-collapse-1"" aria-expanded=""false"">"
+			fHTML.WriteLine "					<span class=""sr-only"">Toggle navigation</span>"				
+			fHTML.WriteLine "					<span class=""icon-bar""></span>"
+			fHTML.WriteLine "					<span class=""icon-bar""></span>"
+			fHTML.WriteLine "					<span class=""icon-bar""></span>"
+			fHTML.WriteLine "				</button>"
+			fHTML.WriteLine "				<a class=""navbar-brand"" href=""/" & arrFileList(0) & strFileType & """>Home</a>"
+			fHTML.WriteLine "			</div>"
+			fHTML.WriteLine "			<!-- Collect the nav links, forms, and other content for toggling -->"
+			fHTML.WriteLine "			<div class=""collapse navbar-collapse"" id=""bs-example-navbar-collapse-1"">"
+			fHTML.WriteLine "				<ul class=""nav navbar-nav"">"
+			For x = 1 to UBound(arrFileList)
+				fHTML.WriteLine "					<li><a href=""/" & arrFileList(x) & strFileType & """>" & arrFileList(x) & "</a></li>"
+			Next
+			fHTML.WriteLine "				</ul>"
+			fHTML.WriteLine " "
+			fHTML.WriteLine " "
+			fHTML.WriteLine " "
+			fHTML.WriteLine "<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->"
+			fHTML.WriteLine("<script src=""https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js""></scri\pt>")
+			fHTML.WriteLine("<!-- Include all compiled plugins (below), or include individual files as needed -->")
+			fHTML.WriteLine("<script src=""https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js""></scri\pt>")
+		End If
+		fHTML.WriteLine "</body>"
+		fHTML.WriteLine "</html>"
+		fHTML.Close
+	Next
+End Sub
+'******************************************************************************** 
+</SCRIPT>
+ 
+<BODY STYLE="FONT:10 pt verdana; COLOR:black; filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr='#FFCC66', EndColorStr='#FFFFFF')">
+ 
+Enter Required Data: <BR>
+<input type="text" name="TextBox1" size="30" value="Input index page folder."><BR><BR>
+<input type="text" name="TextBox2" size="30" value="Input Site Title."><BR><BR>
+<input type="text" name="TextBox3" size="30" value="Input Site description"><BR><BR>
+<input type="text" name="TextBox4" size="30" value="Input Site Author"><BR><BR>
+<input id="myBox" type="checkbox" name="navbarInclude">Include basic bootstrap navbar?<BR><BR>
+
+<input id=runbutton class= "button" type="button" value="Create Site" name="button1" onClick="createHTMLPage">
+ 
+</BODY>
