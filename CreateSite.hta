@@ -19,23 +19,35 @@
 	Authors:	Seinu
 	Purpose:	Create Website Template 
 	History:
-		07/03/2017 - v1.0	Basic Website Template creator
+		07/02/2017 - v1.0	Basic Website Template creator
 			Features:
 				create html Boilerplates for each page of site with custom filetype
 				option to include basic Bootstrap Navbar
+				
+		07/03/2017 - v1.1	Feature Update
+			New Features:
+				can now create bootstrap grids
+				can now include Lorem Ipsum 
+			
 
 *****************************************************************************
 -->
 <HEAD>
-<TITLE>Create Website Boilerplate</TITLE>
-<hta:application
-	applicationname="Create Website Boilerplate"
-	scroll="no"
-	singleinstance'"yes"
-	>
+<TITLE>Create Website Template</TITLE>
+<HTA:APPLICATION
+  APPLICATIONNAME="Create Website Template"
+  VERSION="1.1"
+  SYSMENU="no"
+  ICON="CreateSite.ico"
+  SCROLL="auto"
+  SINGLEINSTANCE="yes"/>
 </HEAD>
  
 <SCRIPT language="vbscript">
+'Globals
+Dim gridBox, incGrid, LoremIpsum
+gridBox = 0
+LoremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 '********************************************************************************
 Sub window_onload()
 	CenterWindow 290,320
@@ -50,8 +62,19 @@ Sub CenterWindow(x,y)
 	window.moveTo ileft,itop
 End Sub
 '********************************************************************************
+Sub createGrid()
+	If Not incGrid Then
+		incGrid = True
+	End If
+	strHTML = gridData.InnerHTML
+	strHTML = strHTML & "<input type=""text"" id=""gridBox" & gridBox & """ size=""30"" value=""Input column Classes separated by ,""><BR><BR>"
+	MsgBox "col-xs-6 col-md-4,col-xs-6 col-md-4", 1,  "Example"
+	gridData.InnerHTML = strHTML
+	gridBox = gridBox + 1 
+End Sub
+'********************************************************************************
 Sub createHTMLPage()
-	Dim outPath, title, description, author 
+	Dim outPath, title, description, author
 	strFileType = InputBox("Input File Type ie .php .html", "File Type")
 	strFileList = InputBox("Input Files to create separated by a ,", "files to create")
 	arrFileList = Split(strFileList, ",")
@@ -64,9 +87,9 @@ Sub createHTMLPage()
 	Set fso = CreateObject("Scripting.FileSystemObject") 'create file system object
 	If Not fso.FolderExists(outPath) Then
     	fso.CreateFolder(outPath)
-    	If Not fso.FolderExists(outPath & "\css") Then
-    		fso.CreateFolder(outPath & "\css")
-		End If
+	End If
+    If Not fso.FolderExists(outPath & "\css") Then
+    	fso.CreateFolder(outPath & "\css")
 	End If
 	Set fCSS = fso.OpenTextFile(outPath & "\css\style.css",2,True)
 	fCSS.Close
@@ -116,14 +139,36 @@ Sub createHTMLPage()
 				fHTML.WriteLine "					<li><a href=""/" & arrFileList(x) & strFileType & """>" & arrFileList(x) & "</a></li>"
 			Next
 			fHTML.WriteLine "				</ul>"
-			fHTML.WriteLine " "
-			fHTML.WriteLine " "
-			fHTML.WriteLine " "
-			fHTML.WriteLine "<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->"
-			fHTML.WriteLine("<script src=""https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js""></scri\pt>")
-			fHTML.WriteLine("<!-- Include all compiled plugins (below), or include individual files as needed -->")
-			fHTML.WriteLine("<script src=""https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js""></scri\pt>")
+			fHTML.WriteLine "			</div>"
+			fHTML.WriteLine "		</div>"
+			fHTML.WriteLine "	</nav>"
 		End If
+		If incGrid Then
+			fHTML.WriteLine " "
+			containType = InputBox("container or container-fluid", "Input Container Type")
+			liResult=Msgbox("Use Lorem Ipsum?",vbYesNo, "Lorem Ipsum")
+			fHTML.WriteLine "	<div class=""" & ContainType & """>"
+			For y = 0 To gridBox - 1
+				fHTML.WriteLine " "
+				Set ogrid = document.getElementById("gridBox" & y)
+				arrRow = Split(ogrid.value, ",")
+				For x = 0 To UBound(arrRow)
+					If liResult Then
+						fHTML.WriteLine "		<div class=""" & arrRow(x) & """>" & LoremIpsum &"</div>"
+					ElseIf Not liResult Then
+						fHTML.WriteLine "		<div class=""" & arrRow(x) & """>" & arrRow(x) &"</div>"
+					End If
+				Next
+			Next
+			fHTML.WriteLine "	</div>"
+		End If
+		fHTML.WriteLine " "
+		fHTML.WriteLine " "
+		fHTML.WriteLine " "
+		fHTML.WriteLine "<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->"
+		fHTML.WriteLine("<script src=""https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js""></scri" & "pt>")
+		fHTML.WriteLine("<!-- Include all compiled plugins (below), or include individual files as needed -->")
+		fHTML.WriteLine("<script src=""https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js""></scri" & "pt>")
 		fHTML.WriteLine "</body>"
 		fHTML.WriteLine "</html>"
 		fHTML.Close
@@ -133,14 +178,15 @@ End Sub
 </SCRIPT>
  
 <BODY STYLE="FONT:10 pt verdana; COLOR:black; filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr='#FFCC66', EndColorStr='#FFFFFF')">
- 
-Enter Required Data: <BR>
+
+Enter Required Data: <BR><BR>
 <input type="text" name="TextBox1" size="30" value="Input index page folder."><BR><BR>
 <input type="text" name="TextBox2" size="30" value="Input Site Title."><BR><BR>
 <input type="text" name="TextBox3" size="30" value="Input Site description"><BR><BR>
 <input type="text" name="TextBox4" size="30" value="Input Site Author"><BR><BR>
 <input id="myBox" type="checkbox" name="navbarInclude">Include basic bootstrap navbar?<BR><BR>
-
+<span id=gridData></span>
+<input id=createGrid type="button" value="Add Bootstrap Grid" onClick="createGrid"><BR><BR>
 <input id=runbutton class= "button" type="button" value="Create Site" name="button1" onClick="createHTMLPage">
  
 </BODY>
