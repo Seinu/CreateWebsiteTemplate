@@ -28,7 +28,13 @@
 			New Features:
 				can now create bootstrap grids
 				can now include Lorem Ipsum 
+				
+		07/03/2017 - v1.2a	Feature Update
+			New Features:
+				can now create different bootstrap grids for each page
 			
+		07/03/2017 - v1.2b
+			added comments and option explicit 
 
 *****************************************************************************
 -->
@@ -36,23 +42,29 @@
 <TITLE>Create Website Template</TITLE>
 <HTA:APPLICATION
   APPLICATIONNAME="Create Website Template"
-  VERSION="1.1"
-  SYSMENU="no"
+  VERSION="1.2"
   ICON="CreateSite.ico"
-  SCROLL="auto"
+  SCROLL="no"
   SINGLEINSTANCE="yes"/>
 </HEAD>
  
 <SCRIPT language="vbscript">
+option explicit
 'Globals
-Dim gridBox, incGrid, LoremIpsum
-gridBox = 0
+Dim LoremIpsum
+
 LoremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 '********************************************************************************
 Sub window_onload()
-	CenterWindow 290,320
+	CenterWindow 280,332
 	Self.document.bgColor = "White" 
 End Sub
+'********************************************************************************
+Function AddItem(arr, val)
+    ReDim Preserve arr(UBound(arr) + 1)
+    arr(UBound(arr)) = val
+    AddItem = arr
+End Function
 '********************************************************************************
 Sub CenterWindow(x,y)
 	Dim iLeft,itop
@@ -62,42 +74,44 @@ Sub CenterWindow(x,y)
 	window.moveTo ileft,itop
 End Sub
 '********************************************************************************
-Sub createGrid()
-	If Not incGrid Then
-		incGrid = True
-	End If
-	strHTML = gridData.InnerHTML
-	strHTML = strHTML & "<input type=""text"" id=""gridBox" & gridBox & """ size=""30"" value=""Input column Classes separated by ,""><BR><BR>"
-	MsgBox "col-xs-6 col-md-4,col-xs-6 col-md-4", 1,  "Example"
-	gridData.InnerHTML = strHTML
-	gridBox = gridBox + 1 
-End Sub
-'********************************************************************************
 Sub createHTMLPage()
-	Dim outPath, title, description, author
+	Dim outPath, title, description, author, strFileType, strFileList, arrFileList, fso, fCSS, fHTML
+	
 	strFileType = InputBox("Input File Type ie .php .html", "File Type")
 	strFileList = InputBox("Input Files to create separated by a ,", "files to create")
 	arrFileList = Split(strFileList, ",")
 	
-	outPath = TextBox1.Value
-	title = TextBox2.Value
-	description = TextBox3.Value
-	author = TextBox4.Value
+	outPath = TextBox1.Value		'get out path from hta input
+	title = TextBox2.Value			'get main title of Site
+	description = TextBox3.Value	'get site description
+	author = TextBox4.Value			'get site Author
+	
+	'add ending \ for output directory
 	outPath = outPath & "\"
-	Set fso = CreateObject("Scripting.FileSystemObject") 'create file system object
+	
+	'create file system object
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	
+	'check output directory folder exists and create it if not
 	If Not fso.FolderExists(outPath) Then
     	fso.CreateFolder(outPath)
 	End If
+	'check if css folder exists in website and create it if not
     If Not fso.FolderExists(outPath & "\css") Then
     	fso.CreateFolder(outPath & "\css")
 	End If
+	
+	'create CSS file
+	'Todo: Add options for creating a css Theme
 	Set fCSS = fso.OpenTextFile(outPath & "\css\style.css",2,True)
 	fCSS.Close
-	
+	'loop through file List Array
+	Dim i
 	For i = 0 to UBound(arrFileList)
+		'open file(outpath = homedir, arrFileList(i) = filename, strFileType = .html/.php/etc) as fHTML
 		Set fHTML = fso.OpenTextFile(outPath & arrFileList(i) & strFileType ,2,True)
 	
-		'window contents
+		'Write HTML Doctype, Header, Meta Tags to File Start
 		fHTML.WriteLine "<!doctype html>"
 		fHTML.WriteLine " "
 		fHTML.WriteLine "<html lang=""en"">"
@@ -110,15 +124,17 @@ Sub createHTMLPage()
 		fHTML.WriteLine "	<meta name=""author"" content=""" & author & """>"
 		fHTML.WriteLine " "
 		fHTML.WriteLine "	<link rel=""stylesheet"" href=""css/style.css"">"
-		If navbarInclude.Checked Then
-			fHTML.WriteLine " "
-			fHTML.WriteLine "<!-- Latest compiled and minified CSS -->"
-			fHTML.WriteLine "<link rel=""stylesheet"" href=""https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"" integrity=""sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"" crossorigin=""anonymous"">"
-		End If
+		fHTML.WriteLine " "
+		fHTML.WriteLine "<!-- Latest compiled and minified CSS -->"
+		fHTML.WriteLine "<link rel=""stylesheet"" href=""https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"" integrity=""sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"" crossorigin=""anonymous"">"
 		fHTML.WriteLine " "
 		fHTML.WriteLine "</head>"
+		'HTML Doctype, Header, Meta Tags End
+		
 		fHTML.WriteLine "<body>"
+		'Check navbar is checked
 		If navbarInclude.Checked Then
+			'basic bootstrap navbar template start
 			fHTML.WriteLine " "
 			fHTML.WriteLine "	<nav class=""navbar navbar-default"">"
 			fHTML.WriteLine "		<div class=""container-fluid"">"
@@ -135,6 +151,7 @@ Sub createHTMLPage()
 			fHTML.WriteLine "			<!-- Collect the nav links, forms, and other content for toggling -->"
 			fHTML.WriteLine "			<div class=""collapse navbar-collapse"" id=""bs-example-navbar-collapse-1"">"
 			fHTML.WriteLine "				<ul class=""nav navbar-nav"">"
+			'loop through every file except index/homepage and create a navbar link using filename as link text
 			For x = 1 to UBound(arrFileList)
 				fHTML.WriteLine "					<li><a href=""/" & arrFileList(x) & strFileType & """>" & arrFileList(x) & "</a></li>"
 			Next
@@ -142,26 +159,53 @@ Sub createHTMLPage()
 			fHTML.WriteLine "			</div>"
 			fHTML.WriteLine "		</div>"
 			fHTML.WriteLine "	</nav>"
+			'basic bootstrap navbar template end
 		End If
-		If incGrid Then
+		
+		'create variable incGrid and set as False
+		Dim incGrid
+		incGrid = False
+		'Do loop
+		Do
+			Dim liResult 'create variable liResult to determine LoremIpsum inclusion
+			Dim containType, arrRow
+			'get True/False from msgbox and set incGrid to response
+			If Msgbox("Create New Grid for " & arrFileList(i), vbYesNo, "") = vbYes Then
+				incGrid = True
+			Else
+				IncGrid = False
+				Exit Do 'Exits loop when set to false
+			End If
+			containType = InputBox("container or container-fluid", "Input Container Type")					'get container type see bootstrap docs for difference
+			arrRow = Split(InputBox("Input column Classes separated by ,", "Input column Classes"), ",")	'get the various classes for each grid column of current row seperated by a comma for array creation
+			
+			'get Lorem Ipsum True/False result
+			If MsgBox("Use Lorem Ipsum?",vbYesNo, "Lorem Ipsum") = vbYes Then
+				liResult = True
+			Else
+				liResult = False
+			End If
+			'grid template start
 			fHTML.WriteLine " "
-			containType = InputBox("container or container-fluid", "Input Container Type")
-			liResult=Msgbox("Use Lorem Ipsum?",vbYesNo, "Lorem Ipsum")
-			fHTML.WriteLine "	<div class=""" & ContainType & """>"
-			For y = 0 To gridBox - 1
-				fHTML.WriteLine " "
-				Set ogrid = document.getElementById("gridBox" & y)
-				arrRow = Split(ogrid.value, ",")
-				For x = 0 To UBound(arrRow)
-					If liResult Then
-						fHTML.WriteLine "		<div class=""" & arrRow(x) & """>" & LoremIpsum &"</div>"
-					ElseIf Not liResult Then
-						fHTML.WriteLine "		<div class=""" & arrRow(x) & """>" & arrRow(x) &"</div>"
-					End If
-				Next
+			fHTML.WriteLine "	<div class=""" & ContainType & """>"	'create div container with container type
+			fHTML.WriteLine " "
+			
+			'For each col in row Array add a div with bootstrap classes
+			'input LoremIpsum if liResult is True
+			'Else use bootstrap classes as text
+			Dim x
+			For x = 0 To UBound(arrRow)
+				If liResult Then
+					fHTML.WriteLine "		<div class=""" & arrRow(x) & """>" & LoremIpsum &"</div>"
+				ElseIf Not liResult Then
+					fHTML.WriteLine "		<div class=""" & arrRow(x) & """>" & arrRow(x) &"</div>"
+				End If
 			Next
+			'close container div
 			fHTML.WriteLine "	</div>"
-		End If
+		Loop While incGrid = True 'check loop condition at end for True/False
+		
+		'include bootstrap requirements and ending body+html tags
 		fHTML.WriteLine " "
 		fHTML.WriteLine " "
 		fHTML.WriteLine " "
@@ -178,15 +222,11 @@ End Sub
 </SCRIPT>
  
 <BODY STYLE="FONT:10 pt verdana; COLOR:black; filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr='#FFCC66', EndColorStr='#FFFFFF')">
-
-Enter Required Data: <BR><BR>
-<input type="text" name="TextBox1" size="30" value="Input index page folder."><BR><BR>
-<input type="text" name="TextBox2" size="30" value="Input Site Title."><BR><BR>
-<input type="text" name="TextBox3" size="30" value="Input Site description"><BR><BR>
-<input type="text" name="TextBox4" size="30" value="Input Site Author"><BR><BR>
-<input id="myBox" type="checkbox" name="navbarInclude">Include basic bootstrap navbar?<BR><BR>
-<span id=gridData></span>
-<input id=createGrid type="button" value="Add Bootstrap Grid" onClick="createGrid"><BR><BR>
-<input id=runbutton class= "button" type="button" value="Create Site" name="button1" onClick="createHTMLPage">
- 
+			Enter Required Data: <BR><BR>
+			<input type="text" name="TextBox1" size="30" value="Input index page folder."><BR><BR>
+			<input type="text" name="TextBox2" size="30" value="Input Site Title."><BR><BR>
+			<input type="text" name="TextBox3" size="30" value="Input Site description"><BR><BR>
+			<input type="text" name="TextBox4" size="30" value="Input Site Author"><BR><BR>
+			<input id="myBox" type="checkbox" name="navbarInclude">Include basic bootstrap navbar?<BR><BR>
+			<input id="runbutton" class="button" type="button" value="Create Site" name="button1" onClick="createHTMLPage">
 </BODY>
